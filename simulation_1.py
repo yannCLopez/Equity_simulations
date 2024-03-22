@@ -35,7 +35,6 @@ def generate_G(n, seed):
 
     return A
 
-
 def compute_a_star(sigma, G, p):
     """
     Computes the optimal actions a* for agents given a contract sigma, a connectivity graph G, and a parameter p.
@@ -49,9 +48,7 @@ def compute_a_star(sigma, G, p):
     - numpy.ndarray: The optimal action vector a* for the agents.
     """
     n = len(sigma)  # Number of agents
-    t_sqrt = np.sqrt(
-        sigma
-    )  # Transform sigma into t by taking the square root of each element
+    t_sqrt = np.sqrt(sigma)  # Transform sigma into t by taking the square root of each element
 
     # Create the diagonal matrix diag(t)
     diag_t = np.diag(t_sqrt)
@@ -64,7 +61,6 @@ def compute_a_star(sigma, G, p):
     a_star = p * np.dot(np.dot(inverse_term, diag_t), np.ones(n))
 
     return a_star
-
 
 def compute_kappa_functions(sigma, G, p, a_star):
     """
@@ -86,9 +82,7 @@ def compute_kappa_functions(sigma, G, p, a_star):
     grad_Y = 1 + np.dot(G, a_star)
 
     # Computing kappa
-    H_inv_sqrt = np.identity(
-        n
-    )  # H is the identity matrix, so its inverse square root is also an identity matrix
+    H_inv_sqrt = np.identity(n)  # H is the identity matrix, so its inverse square root is also an identity matrix
     kappa = np.dot(H_inv_sqrt, grad_Y)
 
     # Computing U
@@ -100,17 +94,72 @@ def compute_kappa_functions(sigma, G, p, a_star):
     bar_kappa_T = np.dot(kappa.T, np.linalg.inv(np.identity(n) - np.dot(U, G)))
 
     # Computing u_i'(sigma_i*(s))
-    ui_prime = (
-        p
-        * (np.dot(np.ones(n), a_star) + 0.5 * np.dot(a_star.T, np.dot(G, a_star)))
-        * (0.5 / t_sqrt)
-    )
+    ui_prime = p * (np.dot(np.ones(n), a_star) + 0.5 * np.dot(a_star.T, np.dot(G, a_star))) * (0.5 / t_sqrt)
 
     # Final computation for each agent
     result = kappa * bar_kappa_T * ui_prime
 
     return result
 
+seed=4
+n = 5  # Number of agents
+G = generate_G(n, seed)
+
+p = 0.7  # Given parameter p in the range [0, 1]
+sigma = np.array([1, 2, 3, 4, 5])  # Example contract vector sigma
+
+a_star = compute_a_star(sigma, G, p)
+result = compute_kappa_functions(sigma, G, p, a_star)
+objective = sum((result[i] - result[j])**2 for i in range(len(result)) for j in range(i + 1, len(result)))
+print(objective)
+
+
+# Objective function
+def objective_function(sigma, G, p):
+    a_star = compute_a_star(sigma, G, p)
+    result = compute_kappa_functions(sigma, G, p, a_star)
+    objective = sum((result[i] - result[j])**2 for i in range(len(result)) for j in range(i + 1, len(result)))
+    return objective
+
+# Constraint: sum(sigma) = 1
+constraints = ({'type': 'eq', 'fun': lambda sigma: np.sum(sigma) - 0.7})
+
+# Bounds for sigma_i: 0 < sigma_i < 1
+bounds = [(0.01, 1) for _ in range(n)]
+
+# Initial sigma
+sigma_initial = [.05, .05, .5, .3, .4]
+
+# Optimization
+opt_result = minimize(
+    objective_function, sigma_initial, args=(G, p),
+    method='SLSQP', bounds=bounds,
+    # constraints=constraints,
+    options={'maxiter': 100000000, 'ftol': 1e-8}
+)
+
+if opt_result.success:
+    optimized_sigma = opt_result.x
+    print("Optimized sigma:", optimized_sigma)
+else:
+    print("Optimization failed:", opt_result.message)
+
+ 
+a_star = compute_a_star(optimized_sigma, G, p)
+result = compute_kappa_functions(optimized_sigma, G, p, a_star)
+objective = sum((result[i] - result[j])**2 for i in range(len(result)) for j in range(i + 1, len(result)))
+print("Objective:", objective)
+
+# Assuming a_star is your optimized action vector from previous computations
+# And G is the graph adjacency matrix
+
+# Calculate 1 + Ga*
+transformed_actions = 1 + np.dot(G, a_star)
+
+# Compute Spearman rank correlation
+spearman_corr, _ = spearmanr(transformed_actions, a_star)
+
+print("Spearman Rank Correlation (1 + Ga*, a*):", spearman_corr)
 
 def visualize_graph(G):
     """
@@ -125,79 +174,13 @@ def visualize_graph(G):
 
     # Draw the graph
     plt.figure(figsize=(4, 4))
-    nx.draw(
-        G_nx,
-        with_labels=True,
-        node_color="skyblue",
-        node_size=700,
-        edge_color="k",
-        linewidths=1,
-        font_size=15,
-        pos=nx.spring_layout(G_nx, seed=42),
-    )
-    plt.title("Graph Visualization")
+    nx.draw(G_nx, with_labels=True, node_color='skyblue', node_size=700,
+            edge_color='k', linewidths=1, font_size=15,
+            pos=nx.spring_layout(G_nx, seed=42))
+    plt.title('Graph Visualization')
     plt.show()
 
 
-seed = 4
-n = 5  # Number of agents
-G = generate_G(n, seed)
-
-p = 0.7  # Given parameter p in the range [0, 1]
-sigma = np.array([1, 2, 3, 4, 5])  # Example contract vector sigma
-
-a_star = compute_a_star(sigma, G, p)
-result = compute_kappa_functions(sigma, G, p, a_star)
-objective = sum(
-    (result[i] - result[j]) ** 2
-    for i in range(len(result))
-    for j in range(i + 1, len(result))
-)
-print(objective)
-
-# seed = 40
-n = 5  # Number of agents
-G = generate_G(n, seed)
-p = 0.7  # Given parameter p
-
-
-# Objective function
-def objective_function(sigma, G, p):
-    a_star = compute_a_star(sigma, G, p)
-    result = compute_kappa_functions(sigma, G, p, a_star)
-    objective = sum(
-        (result[i] - result[j]) ** 2
-        for i in range(len(result))
-        for j in range(i + 1, len(result))
-    )
-    return objective
-
-
-# Constraint: sum(sigma) = 1
-constraints = {"type": "eq", "fun": lambda sigma: np.sum(sigma) - 0.7}
-
-# Bounds for sigma_i: 0 < sigma_i < 1
-bounds = [(0.01, 1) for _ in range(n)]
-
-# Initial sigma
-sigma_initial = [0.05, 0.05, 0.5, 0.3, 0.4]
-
-# Optimization
-opt_result = minimize(
-    objective_function,
-    sigma_initial,
-    args=(G, p),
-    method="SLSQP",
-    bounds=bounds,
-    # constraints=constraints,
-    options={"maxiter": 100000000, "ftol": 1e-8},
-)
-
-if opt_result.success:
-    optimized_sigma = opt_result.x
-    print("Optimized sigma:", optimized_sigma)
-else:
-    print("Optimization failed:", opt_result.message)
 
 
 def run_simulation(n, p, bounds, max_iterations, ftol, constraints):
@@ -207,19 +190,14 @@ def run_simulation(n, p, bounds, max_iterations, ftol, constraints):
 
     for _ in range(max_iterations):
         G = generate_G(n, np.random.randint(0, 10000))  # Generate G with a random seed
-        sigma_initial = np.full(
-            n, 0.5 / n
-        )  # Adjusted initial sigma to ensure sum(sigma) = .5
+        sigma_initial = np.full(n, .5/n)  # Adjusted initial sigma to ensure sum(sigma) = .5
 
         # Optimization
         opt_result = minimize(
-            objective_function,
-            sigma_initial,
-            args=(G, p),
-            method="SLSQP",
-            bounds=bounds,
+            objective_function, sigma_initial, args=(G, p),
+            method='SLSQP', bounds=bounds,
             constraints=constraints,
-            options={"maxiter": 10000, "ftol": ftol},
+            options={'maxiter': 10000, 'ftol': ftol}
         )
 
         if opt_result.success:
@@ -233,9 +211,7 @@ def run_simulation(n, p, bounds, max_iterations, ftol, constraints):
             spearman_correlations.append(spearman_corr)
 
             # Store detailed results
-            detailed_results.append(
-                (G, spearman_corr, optimized_sigma, a_star, transformed_actions)
-            )
+            detailed_results.append((G, spearman_corr, optimized_sigma, a_star, transformed_actions))
 
     # Find the G with the least Spearman Rank Correlation
     if detailed_results:
@@ -250,13 +226,7 @@ def run_simulation(n, p, bounds, max_iterations, ftol, constraints):
 
         # Select the item at the 5th percentile
         percentile_20th_result = sorted_results[index]
-        (
-            G_least_corr,
-            least_corr,
-            sigma_least_corr,
-            a_star_least_corr,
-            transformed_actions_least_corr,
-        ) = percentile_20th_result
+        G_least_corr, least_corr, sigma_least_corr, a_star_least_corr, transformed_actions_least_corr = percentile_20th_result
 
         # Print details for the G with the least Spearman Rank Correlation
         print("G with the least Spearman Rank Correlation:")
@@ -271,37 +241,12 @@ def run_simulation(n, p, bounds, max_iterations, ftol, constraints):
 
     return success_count, spearman_correlations, detailed_results
 
-
-a_star = compute_a_star(optimized_sigma, G, p)
-result = compute_kappa_functions(optimized_sigma, G, p, a_star)
-objective = sum(
-    (result[i] - result[j]) ** 2
-    for i in range(len(result))
-    for j in range(i + 1, len(result))
-)
-print(objective)
-
-
-# Assuming a_star is your optimized action vector from previous computations
-# And G is the graph adjacency matrix
-
-# Calculate 1 + Ga*
-transformed_actions = 1 + np.dot(G, a_star)
-
-# Compute Spearman rank correlation
-spearman_corr, _ = spearmanr(transformed_actions, a_star)
-
-print("Spearman Rank Correlation (1 + Ga*, a*):", spearman_corr)
-
-
 # Run simulations
-success_count, spearman_correlations, detailed_results = run_simulation(
-    n, p, bounds, 100, 1e-8, constraints
-)
+success_count, spearman_correlations, detailed_results = run_simulation(n, p, bounds, 100, 1e-8, constraints)
 
 # Visualization
-plt.hist(spearman_correlations, bins=20, color="skyblue", edgecolor="black")
-plt.title("Distribution of Spearman Rank Correlations")
-plt.xlabel("Spearman Rank Correlation")
-plt.ylabel("Frequency")
+plt.hist(spearman_correlations, bins=20, color='skyblue', edgecolor='black')
+plt.title('Distribution of Spearman Rank Correlations')
+plt.xlabel('Spearman Rank Correlation')
+plt.ylabel('Frequency')
 plt.show()
