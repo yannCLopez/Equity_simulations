@@ -28,5 +28,16 @@ nonlinear_constraint = NonlinearConstraint(constraint_sum, -np.inf, 1)
 # Performing differential evolution with the adapted objective function and constraints
 result = differential_evolution(objective_function, bounds, constraints=[nonlinear_constraint])
 
+def compute_a_star(t, p, G):
+    n = len(t)
+    I = np.eye(n)
+    T_sqrt = np.diag(np.sqrt(t))
+    a_star = p * np.linalg.inv(I - p * T_sqrt @ G) @ T_sqrt @ np.ones(n)
+    return a_star
+
+optimal_t = result.x  # This assumes 'result' is the output of your differential_evolution call
+a_star_optimal = compute_a_star(optimal_t, p, G)
+
+print("Computed a_star using optimal t:", a_star_optimal)
 print("Optimal t:", result.x)
 print("Minimum objective value:", result.fun)
