@@ -180,6 +180,7 @@ def visualize_graph(G):
     plt.title('Graph Visualization')
     plt.show()
 
+
 def run_simulation(n, p, bounds, max_iterations, ftol, constraints):
     success_count = 0
     spearman_correlations = []
