@@ -1,0 +1,98 @@
+from sympy import symbols, Rational, simplify, diff
+from itertools import product
+import random
+from math import prod
+from scipy.optimize import minimize
+import numpy as np
+
+#1. DERIVATIVE MACHINE
+
+# Specify the parameters
+lower_bound_coeff = 0
+upper_bound_coeff = 5
+lower_bound_d = 2
+upper_bound_d = 5
+n = 5  # number of variables
+d = random.randint(lower_bound_d, upper_bound_d)  # Degree
+
+# Generate n variables dynamically
+variables = symbols(f'a_1:{n+1}')
+
+# Function to generate random coefficients
+def random_coefficients(lower, upper):
+    return random.randint(lower, upper)
+
+# Reset and generate coefficients for all combinations where each variable's degree can go up to d independently
+coefficients_independent = {}
+for degrees in product(range(d + 1), repeat=n):
+    # This time, we do not need to check the sum of degrees
+    coefficients_independent[degrees] = random_coefficients(lower_bound_coeff, upper_bound_coeff)
+
+# Construct the polynomial with the new approach
+Y = sum(coefficients_independent[idx] * prod(variables[i]**idx[i] for i in range(n)) for idx in coefficients_independent)
+
+
+# Re-calculating the derivatives of polynomial_independent with respect to each variable a_i
+derivatives = {var: diff(Y, var) for var in variables}
+
+# Simplify and display the derivatives
+derivatives_simplified = {var: simplify(derivatives[var]) for var in derivatives}
+
+##########################################################################################
+
+#2. OPTIMISATION MACHINE
+# Parameters
+p = 0.7  # Assuming some positive value for p, as it's not specified
+num_starts = 10
+
+# Generate a random sigma vector of length n with entries that add up to 1
+sigma = np.random.dirichlet(np.ones(n), size=1)[0]
+
+
+bounds = [(0, None) for _ in range(len(sigma))]  # Constraints: a_i >= 0
+
+# Correcting the objective function to ensure numerical evaluation of SymPy expressions
+def objective_numerical(a):
+    # Convert input to a suitable format for substitution
+    subs = {var: a_val for var, a_val in zip(variables, a)}
+    
+    # Recompute the derivatives with numerical values substituted
+    partial_derivatives_numerical = np.array([float(p * derivatives_simplified[var].subs(subs) * np.sqrt(sigma[i]) - a[i]) for i, var in enumerate(variables)])
+    
+    # Return the squared norm of the vector of derivatives
+    return np.sum(partial_derivatives_numerical**2)
+
+# Attempt the minimization again with the corrected objective function
+a_stars = []
+objectives = []
+for _ in range(num_starts):
+    initial_guess = np.random.uniform(0, 100, len(sigma))
+    result_numerical = minimize(objective_numerical, initial_guess, bounds=bounds, method='L-BFGS-B')
+    optimized_a_numerical = result_numerical.x
+    objective  = result_numerical.fun
+    a_stars.append(optimized_a_numerical)
+    objectives.append(objective)
+
+# Create and print the dictionary with a_stars and objectives
+results_paired = [{"a_star": a_star, "objective": objective} for a_star, objective in zip(a_stars, objectives)]
+
+
+# Define the function to compute Y given a specific set of ai values
+def compute_Y(a_values):
+    subs = {var: a_val for var, a_val in zip(variables, a_values)}
+    return float(Y.subs(subs))
+
+# Compute the principal surplus for each a_star
+principal_surpluses = []
+for a_star in a_stars:
+    Y_at_a_star = min(compute_Y(a_star), 1)  # Ensure Y(a*) does not exceed 1
+    surplus = (1 - sum(sigma)) * p * Y_at_a_star
+    principal_surpluses.append(surplus)
+
+# Pair each a_star with its corresponding principal surplus
+results_with_surplus = [{"a_star": a_star, "principal_surplus": surplus} for a_star, surplus in zip(a_stars, principal_surpluses)]
+
+# Find the entry with the highest principal surplus
+max_surplus_entry = max(results_with_surplus, key=lambda x: x["principal_surplus"])
+
+print(max_surplus_entry)
