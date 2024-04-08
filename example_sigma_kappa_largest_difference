@@ -1,10 +1,32 @@
-# Running the provided code 10 times and storing the slopes of the lines of best fit for blue and green points
+# Running the provided code num_iter times and storing the slopes of the lines of best fit for blue and green points
 # Then finding the run with the biggest difference in slopes and plotting that
 
 
 import numpy as np
 from scipy.optimize import differential_evolution, NonlinearConstraint
 import matplotlib.pyplot as plt
+
+
+# Parameters
+num_agents = 12
+
+G = np.array([
+    [0, 3, 3, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+    [3, 0, 3, 0, 0, 0, 1, 1, 1, 0, 0, 0],
+    [3, 3, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+])
+num_iter = 1
+p = 0.2
+
 
 # Define a function that performs the operation and returns the slopes
 def compute_slopes_and_plot(num_agents, p, G, num_iter):
@@ -49,27 +71,11 @@ def compute_slopes_and_plot(num_agents, p, G, num_iter):
         if slope_diff > max_slope_diff:
             max_slope_diff = slope_diff
             best_run = (kappa, optimal_t, m_blue, m_green)
+        Y_a_star_optimal = b @ a_star_optimal + 0.5 * a_star_optimal.T @ G @ a_star_optimal
             
-    return best_run
+    return best_run, Y_a_star_optimal
 
-# Parameters
-num_agents = 12
-p = 0.2
-G = np.array([
-    [0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
-    [1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0],
-    [1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-])
-num_iter = 4
+
 
 def compute_a_star(t, p, G, b):
         n = len(t)
@@ -79,10 +85,15 @@ def compute_a_star(t, p, G, b):
         return a_star
 
 # Run the optimization and plotting 10 times and find the run with the biggest difference in slopes
-best_run_data = compute_slopes_and_plot(num_agents, p, G, num_iter)
+best_run_data, Y_a_star_optimal = compute_slopes_and_plot(num_agents, p, G, num_iter)
 print(best_run_data)
+print (Y_a_star_optimal)
 # Unpack the data for the run with the biggest difference in slopes
 # Assuming best_run_data contains the necessary data
+
+
+
+
 if best_run_data:
     kappa, optimal_t, m_blue, m_green = best_run_data
 
@@ -97,7 +108,7 @@ if best_run_data:
     # Plot the first three points (green dots) and the line of best fit for them
     plt.plot(kappa[:3], optimal_t[:3], 'o', color='#90EE90', label='Data (green)')
 
-    plt.title('Figure with the Largest Slope Difference')
+    plt.title(f'Figure with the Largest Slope Difference, Y={Y_a_star_optimal}')
     plt.xlabel(r'$\kappa$', fontsize=14)  # LaTeX formatted x-axis label
     plt.ylabel(r'$\sigma^*$', fontsize=14)  # LaTeX formatted y-axis label
     plt.legend()
