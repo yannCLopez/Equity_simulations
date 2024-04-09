@@ -1,6 +1,6 @@
-# Program: To plot the equity of an agent in a core periphery network versus \kappa.
-# References: Building on Anant's code for a star graph
-# Date: 4-9-2024
+# Program: To plot the equity of an agent in a star graph versus \kappa.
+# References: Building on Yann's code for a core-periphery network
+# Date: 4-8-2024
 
 import numpy as np
 from scipy.optimize import differential_evolution, NonlinearConstraint
@@ -10,21 +10,30 @@ import matplotlib.pyplot as plt
 num_agents = 12
 
 G = np.array([
-    [0, 3, 3, 1, 1, 1, 0, 0, 0, 0, 0, 0],
-    [3, 0, 3, 0, 0, 0, 1, 1, 1, 0, 0, 0],
-    [3, 3, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 3, 3, 0.01, 0.01, 0.01, 0, 0, 0, 0, 0, 0],
+    [3, 0, 3, 0, 0, 0, 0.01, 0.01, 0.01, 0, 0, 0],
+    [3, 3, 0, 0, 0, 0, 0, 0, 0, 0.01, 0.01, 0.01],
+    [0.01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0.01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0.01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0.01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0.01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0.01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0.01, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0.01, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0.01, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ])
+
+print(G)
+# Add tiny random positive noise to all nonzero entries to prevent invertibility problem
+for i in range(G.shape[0]):  # Iterate over rows
+    for j in range(G.shape[1]):  # Iterate over columns
+        if G[i, j] != 0:  # Check if the element is not zero
+            G[i, j] += np.random.uniform(0, 0.0002)  # Add random noise
+print(G)
+
 p = 0.2
-a = 0.575 # we set all entries of b_base_central equal to a. We also scale the changes in b_base_periphery by a. 
+a = 0.45 # we set all entries of b_base_central equal to a. We also scale the changes in b_base_periphery by a. 
 
 num_iter = 5 # Number of data points we want for each type of node
 rand_bound = 0.1 # The distance from an individual productivity of 1. Essentially b is sampled from [1-rand_bound,1+rand_bound]
@@ -161,23 +170,29 @@ m_central_sigma, b_central_sigma = np.polyfit(kappa_axis_central,optimal_t_centr
 
 print(m_central_sigma)
 
+# Round G to 10 decimal places
+G_rounded = np.round(G, 10)
+print (G_rounded)
+
+# Convert G_rounded to a string representation that looks good in LaTeX
+
 #Store variables' values
 with open('output.tex', 'w') as f:
     f.write("\\documentclass{article}\n")
     f.write("\\begin{document}\n")
     f.write("\\section{Variables}\n")
     f.write("\\begin{enumerate}\n")
-    f.write(f"\\item $b0\_list$: {b0_list}\n")
-    f.write(f"\\item $b\_base\_central$: {b_base_central}\n")
-    f.write(f"\\item $b\_base\_periphery$: {b_base_periphery}\n")
+    f.write(f"\\item $b0\_list$: {np.round(b0_list, 10)}\n")
+    f.write(f"\\item $b\_base\_central$: {np.round(b_base_central, 10)}\n")
+    f.write(f"\\item $b\_base\_periphery$: {np.round(b_base_periphery, 10)}\n")
     f.write(f"\\item $p$: {p}\n")
-    f.write(f"\\item $G$: {G}\n")
-    f.write(f"\\item $a\_star\_optimal\_central$: {a_star_optimal_central}\n")
-    f.write(f"\\item $a\_star\_optimal\_periphery$: {a_star_optimal_periphery}\n")
-    f.write(f"\\item $optimal\_t\_central$: {optimal_t_central}\n")
-    f.write(f"\\item $optimal\_t\_periphery$: {optimal_t_periphery}\n")
-    f.write(f"\\item $kappa\_axis\_central$: {kappa_axis_central}\n")
-    f.write(f"\\item $kappa\_axis\_periphery$: {kappa_axis_periphery}\n")
+    f.write(f"\\item $G$: {G_rounded}\n")
+    f.write(f"\\item $a\_star\_optimal\_central$: {np.round(a_star_optimal_central, 10)}\n")
+    f.write(f"\\item $a\_star\_optimal\_periphery$: {np.round(a_star_optimal_periphery, 10)}\n")
+    f.write(f"\\item $optimal\_t\_central$: {np.round(optimal_t_central, 10)}\n")
+    f.write(f"\\item $optimal\_t\_periphery$: {np.round(optimal_t_periphery, 10)}\n")
+    f.write(f"\\item $kappa\_axis\_central$: {np.round(kappa_axis_central, 10)}\n")
+    f.write(f"\\item $kappa\_axis\_periphery$: {np.round(kappa_axis_periphery, 10)}\n")
     f.write("\\end{enumerate}\n")
     f.write("\\end{document}\n")
 
