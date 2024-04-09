@@ -134,13 +134,21 @@ print(m_central)
 
 ######## Plots for the central node #########
 
+fig, ax = plt.subplots()
+
 plt.plot(kappa_axis_central,central_equity,'ro')
 plt.xlabel(r'$\kappa$', fontsize=10)
 plt.ylabel(r'$\mu$', fontsize=10)
 plt.legend(['Central node'],loc='upper left')
 plt.xlim(0.95,1.4)
 plt.ylim(0.35,0.75)
+
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.tick_params(left=False,bottom=False)
 plt.show()
+
+fig, ax = plt.subplots()
 
 # Now plot the points with the best fit line
 plt.plot(kappa_axis_central,central_equity,'ro')
@@ -151,9 +159,15 @@ plt.ylabel(r'$\mu$', fontsize=10)
 plt.xlim(0.95,1.4)
 plt.ylim(0.35,0.75)
 plt.text(1.30,0.65,r'slope=%.2f'%m_central,bbox={'facecolor':'red','alpha':0.5,'pad':10})
+
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.tick_params(left=False,bottom=False)
 plt.show()
 
 ######## Plots for the peripheral node ######
+
+fig, ax = plt.subplots()
 
 plt.plot(kappa_axis_periphery,peripheral_equity,'bo')
 plt.xlabel(r'$\kappa$', fontsize=10)
@@ -161,7 +175,14 @@ plt.ylabel(r'$\mu$', fontsize=10)
 plt.legend(['Peripheral node'],loc='upper left')
 plt.xlim(0.95,1.4)
 plt.ylim(0.35,0.75)
+
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.tick_params(left=False,bottom=False)
+
 plt.show()
+
+fig, ax = plt.subplots()
 
 plt.plot(kappa_axis_periphery,peripheral_equity,'bo')
 plt.plot(kappa_axis_periphery,m_peripheral*kappa_axis_periphery + b_peripheral,'b--')
@@ -171,9 +192,16 @@ plt.ylabel(r'$\mu$', fontsize=10)
 plt.xlim(0.95,1.4)
 plt.ylim(0.35,0.75)
 plt.text(1.10,0.4,r'slope=%.2f'%m_peripheral,bbox={'facecolor':'blue','alpha':0.5,'pad':10})
+
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.tick_params(left=False,bottom=False)
+
 plt.show()
 
 #### Plot them combined
+
+fig, ax = plt.subplots()
 
 plt.plot(kappa_axis_central,central_equity,'ro')
 plt.plot(kappa_axis_periphery,peripheral_equity,'bo')
@@ -186,4 +214,9 @@ plt.ylim(0.35,0.75)
 plt.text(1.3,0.65,r'slope=%.2f'%m_central,bbox={'facecolor':'red','alpha':0.5,'pad':10})
 plt.text(1.10,0.4,r'slope=%.2f'%m_peripheral,bbox={'facecolor':'blue','alpha':0.5,'pad':10})
 plt.legend(['Central node','Peripheral node'],loc='upper left')
+
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.tick_params(left=False,bottom=False)
+
 plt.show()
