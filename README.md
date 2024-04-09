@@ -1,6 +1,6 @@
 # Equity_simulations
 
-# Plots_Finance_Presentation/core_periphery_network:
+## Plots_Finance_Presentation/core_periphery_network:
 Contains :
   - Figure 2_1 to Figure_5_2. These plot sigma and mu against kappa, for a core node and a periphery node in a core periphery network, when we vary their b. The range of kappas for both nodes overlaps.
   - core_graph_kappa.py: The code used to create the above
