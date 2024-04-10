@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 num_agents = 12
 
 G = np.array([
-    [0, 3, 3, 0.01, 0.01, 0.01, 0, 0, 0, 0, 0, 0],
-    [3, 0, 3, 0, 0, 0, 0.01, 0.01, 0.01, 0, 0, 0],
+    [0, 1,3, 0.01, 0.01, 0.01, 0, 0, 0, 0, 0, 0],
+    [1, 0, 3, 0, 0, 0, 0.01, 0.01, 0.01, 0, 0, 0],
     [3, 3, 0, 0, 0, 0, 0, 0, 0, 0.01, 0.01, 0.01],
     [0.01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0.01, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -33,14 +33,12 @@ for i in range(G.shape[0]):  # Iterate over rows
 print(G)
 
 p = 0.2
-a = 0.45 # we set all entries of b_base_central equal to a. We also scale the changes in b_base_periphery by a. 
+a = 0.6 # we set all entries of b_base_central equal to a. We also scale the changes in b_base_periphery by a. 
 
-num_iter = 5 # Number of data points we want for each type of node
+num_iter = 20 # Number of data points we want for each type of node
 rand_bound = 0.1 # The distance from an individual productivity of 1. Essentially b is sampled from [1-rand_bound,1+rand_bound]
 central_equity = np.zeros(num_iter) # Store the equity of the central node as its b is varied, keeping the others constant
 peripheral_equity = np.zeros(num_iter) # Store the equity of a peripheral node as its b is varied, keeping the others constant
-
-
 
 b0_list = np.random.uniform(-rand_bound,rand_bound,num_iter) # Vary the 
 
@@ -50,11 +48,17 @@ kappa_axis_periphery = np.zeros(num_iter)
 optimal_t_periphery = np.zeros(num_iter)
 optimal_t_central = np.zeros(num_iter)
 
+b_base = np.ones(num_agents)
+#b_base[0] = a
+#b_base[1] = 1
+b_base[2] = 0.8
+b_base[6] = 1.08
 
 for iter in range(num_iter):
 	print(iter)
 	#b = 1 + np.random.uniform(-0.2, 0.2, num_agents)
-	b_base_central = np.full(num_agents, a)
+	#b_base_central = np.full(num_agents, a)
+	b_base_central = b_base
 	print (b0_list[iter])
 	print (b_base_central[0])
 	b_base_central[0] = b_base_central[0] + b0_list[iter] # Individual production coefficients of each agent
@@ -106,8 +110,8 @@ for iter in range(num_iter):
 
 for iter in range(num_iter):
 	print(iter)
-	b_base_periphery = np.ones(num_agents)
-	b_base_periphery[6] = b_base_periphery[6] + b0_list[iter]/a # The individual coefficients of each agent
+	b_base_periphery = b_base
+	b_base_periphery[6] = b_base_periphery[6] + b0_list[iter] # The individual coefficients of each agent
 	b = b_base_periphery 
 	# Could also write as: 
 	# b = np.ones(num_agents)
@@ -200,18 +204,18 @@ with open('output.tex', 'w') as f:
 x_range = np.max(kappa_axis_central) - np.min(kappa_axis_central)
 y_range = np.max(optimal_t_central) - np.min(optimal_t_central)
 x_pos_central = np.max(kappa_axis_central) - 0.2 * x_range
-y_pos_central = np.max(optimal_t_central) - 1.9 * y_range
+y_pos_central = np.max(optimal_t_central) - 0.6 * y_range
 
 x_range_periphery = np.max(kappa_axis_periphery) - np.min(kappa_axis_periphery)
 y_range_periphery = np.max(optimal_t_periphery) - np.min(optimal_t_periphery)
-x_pos_periphery = np.max(kappa_axis_periphery) - 0.2 * x_range_periphery
-y_pos_periphery = np.min(optimal_t_periphery) + 5.3 * y_range_periphery
+x_pos_periphery = np.max(kappa_axis_periphery) - 0.05 * x_range_periphery
+y_pos_periphery = np.min(optimal_t_periphery) + 0.1 * y_range_periphery
 
 y_range_mu = np.max(central_equity) - np.min(central_equity)
-y_pos_central_mu = np.max(central_equity) - 2.5 * y_range_mu
+y_pos_central_mu = np.max(central_equity) - 0.9 * y_range_mu
 
 y_range_periphery_mu = np.max(peripheral_equity) - np.min(peripheral_equity)
-y_pos_periphery_mu = np.min(peripheral_equity) + 3.8 * y_range_periphery_mu
+y_pos_periphery_mu = np.min(peripheral_equity) + 0.1 * y_range_periphery_mu
 
 print (f'optimal actions (central) = {a_star_optimal_central}')
 print (f'optimal actions (periphery) = {a_star_optimal_periphery}')
@@ -283,7 +287,6 @@ ax.tick_params(left=False,bottom=False)
 plt.show()
 
 #### Plot them combined
-
 fig, ax = plt.subplots()
 
 plt.plot(kappa_axis_central,central_equity,'ro')
@@ -303,9 +306,6 @@ ax.spines['right'].set_visible(False)
 ax.tick_params(left=False,bottom=False)
 
 plt.show()
-
-
-
 ######## PLOTS FOR SIGMA ########
 ######## Plots for the central node #########
 
@@ -385,8 +385,8 @@ plt.xlabel(r'$\kappa$', fontsize=10)
 plt.ylabel(r'$\sigma$', fontsize=10)
 #plt.xlim(0.95,1.4)
 #plt.ylim(0.35,0.75)
-plt.text(x_pos_central, y_pos_central,r'slope=%.2f'%m_central_sigma,bbox={'facecolor':'red','alpha':0.5,'pad':10})
-plt.text(x_pos_periphery, y_pos_periphery,r'slope=%.2f'%m_peripheral_sigma,bbox={'facecolor':'blue','alpha':0.5,'pad':10})
+plt.text(x_pos_central, y_pos_central,r'slope=%.2f'%m_central_sigma,bbox={'facecolor':'red','alpha':0.5,'pad':5})
+plt.text(x_pos_periphery, y_pos_periphery,r'slope=%.2f'%m_peripheral_sigma,bbox={'facecolor':'blue','alpha':0.5,'pad':5})
 plt.legend(['Central node','Peripheral node'],loc='upper left', bbox_to_anchor=(0, 1.15))
 
 ax.spines['top'].set_visible(False)
@@ -395,6 +395,99 @@ ax.tick_params(left=False,bottom=False)
 
 plt.show()
 
+## Do a combined plot with the same range for each 
+kappa_start = np.amin(kappa_axis_central)
+kappa_end = np.amax(kappa_axis_periphery)
 
+print(kappa_start)
+print(kappa_end)
 
+kappa_axis_central_overlap = []
+kappa_axis_periphery_overlap = []
+optimal_t_central_overlap = []
+optimal_t_periphery_overlap = []
+central_equity_overlap = []
+peripheral_equity_overlap = []
 
+for iter in range(num_iter):
+	print(kappa_axis_central[iter])
+	if kappa_axis_central[iter] >= kappa_start and kappa_axis_central[iter] <= kappa_end:
+		kappa_axis_central_overlap.append(kappa_axis_central[iter])
+		optimal_t_central_overlap.append(optimal_t_central[iter])
+		central_equity_overlap.append(2*np.sqrt(optimal_t_central[iter]))
+	if kappa_axis_periphery[iter] >= kappa_start and kappa_axis_periphery[iter] <= kappa_end:
+		kappa_axis_periphery_overlap.append(kappa_axis_periphery[iter])
+		optimal_t_periphery_overlap.append(optimal_t_periphery[iter])
+		peripheral_equity_overlap.append(2*np.sqrt(optimal_t_periphery[iter]))
+
+print(kappa_axis_central_overlap)
+
+# Find slopes for sigma
+m_peripheral_sigma_overlap, b_peripheral_sigma_overlap = np.polyfit(kappa_axis_periphery_overlap,optimal_t_periphery_overlap,1)
+m_central_sigma_overlap, b_central_sigma_overlap = np.polyfit(kappa_axis_central_overlap,optimal_t_central_overlap,1)
+
+# Find slopes for mu
+m_peripheral_overlap, b_peripheral_overlap = np.polyfit(kappa_axis_periphery_overlap,peripheral_equity_overlap,1)
+m_central_overlap, b_central_overlap = np.polyfit(kappa_axis_central_overlap,central_equity_overlap,1)
+
+x_range_overlap = kappa_end - kappa_start
+y_range_overlap = np.max(optimal_t_central_overlap) - np.min(optimal_t_central_overlap)
+x_pos_central_overlap = np.max(kappa_axis_central_overlap) - 0.5 * x_range_overlap
+y_pos_central_overlap = np.max(optimal_t_central_overlap) - 0.1 * y_range_overlap
+
+x_range_periphery_overlap = kappa_end - kappa_start
+y_range_periphery_overlap = np.max(optimal_t_periphery_overlap) - np.min(optimal_t_periphery_overlap)
+x_pos_periphery_overlap = np.max(kappa_axis_periphery_overlap) - 0.05 * x_range_periphery_overlap
+y_pos_periphery_overlap = np.min(optimal_t_periphery_overlap) + 0.1 * y_range_periphery_overlap
+
+y_range_mu_overlap = np.max(central_equity_overlap) - np.min(central_equity_overlap)
+y_pos_central_mu_overlap = np.max(central_equity_overlap) - 0.1 * y_range_mu_overlap
+
+y_range_periphery_mu_overlap = np.max(peripheral_equity_overlap) - np.min(peripheral_equity_overlap)
+y_pos_periphery_mu_overlap = np.min(peripheral_equity_overlap) + 0.1 * y_range_periphery_mu_overlap
+
+kappa_axis_extension = np.linspace(kappa_start,kappa_end,1000)
+
+# Plot for sigma
+
+fig, ax = plt.subplots()
+
+plt.plot(kappa_axis_central_overlap,optimal_t_central_overlap,'ro')
+plt.plot(kappa_axis_periphery_overlap,optimal_t_periphery_overlap,'bo')
+plt.plot(kappa_axis_extension,m_central_sigma_overlap*kappa_axis_extension + b_central_sigma_overlap,'r--')
+plt.plot(kappa_axis_extension,m_peripheral_sigma_overlap*kappa_axis_extension + b_peripheral_sigma_overlap,'b--')
+plt.xlabel(r'$\kappa$', fontsize=10)
+plt.ylabel(r'$\sigma$', fontsize=10)
+#plt.xlim(0.95,1.4)
+#plt.ylim(0.35,0.75)
+plt.text(x_pos_central_overlap, y_pos_central_overlap,r'slope=%.2f'%m_central_sigma_overlap,bbox={'facecolor':'red','alpha':0.5,'pad':5})
+plt.text(x_pos_periphery_overlap, y_pos_periphery_overlap,r'slope=%.2f'%m_peripheral_sigma_overlap,bbox={'facecolor':'blue','alpha':0.5,'pad':5})
+plt.legend(['Central node','Peripheral node'],loc='upper left', bbox_to_anchor=(0, 1.15))
+
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.tick_params(left=False,bottom=False)
+
+plt.show()
+
+# Plot for mu
+
+fig, ax = plt.subplots()
+
+plt.plot(kappa_axis_central_overlap,central_equity_overlap,'ro')
+plt.plot(kappa_axis_periphery_overlap,peripheral_equity_overlap,'bo')
+plt.plot(kappa_axis_extension,m_central_overlap*kappa_axis_extension + b_central_overlap,'r--')
+plt.plot(kappa_axis_extension,m_peripheral_overlap*kappa_axis_extension + b_peripheral_overlap,'b--')
+plt.xlabel(r'$\kappa$', fontsize=10)
+plt.ylabel(r'$\mu$', fontsize=10)
+#plt.xlim(0.95,1.4)
+#plt.ylim(0.35,0.75)
+plt.text(x_pos_central_overlap, y_pos_central_mu_overlap,r'slope=%.2f'%m_central_overlap,bbox={'facecolor':'red','alpha':0.5,'pad':5})
+plt.text(x_pos_periphery_overlap, y_pos_periphery_mu_overlap,r'slope=%.2f'%m_peripheral_overlap,bbox={'facecolor':'blue','alpha':0.5,'pad':5})
+plt.legend(['Central node','Peripheral node'],loc='upper left', bbox_to_anchor=(0, 1.15))
+
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.tick_params(left=False,bottom=False)
+
+plt.show()
