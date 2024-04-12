@@ -2,6 +2,8 @@
 # References: Building on Anant's modification of Yann's code for a core-periphery network.
 # Date: 4-12-2024 (American date format).
 
+#To do: Add the contraint that the diagonal of G should be set to 0.
+
 import numpy as np
 from scipy.optimize import differential_evolution, NonlinearConstraint, minimize
 import matplotlib.pyplot as plt
