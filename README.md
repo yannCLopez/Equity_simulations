@@ -6,4 +6,5 @@ Contains :
   - core_graph_kappa.py: The code used to create the above
   - variable_values_figure_3.tex, output_4-5.tex: Files containing the values taken by the relevant variables in the corresponding figures.
   - graph.png: a depiction of the corresponding core periphery graph]
-  - core_graph_figure.py: the code used to draw the above. 
+  - core_graph_figure.py: the code used to draw the above.
+  - optimisation_slope.py: First shot at attempting to find G and b for maximum difference in slopes between central and periphery nodes. 
