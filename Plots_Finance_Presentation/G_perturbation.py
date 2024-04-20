@@ -1,7 +1,6 @@
-#Program:  Perturbs the entries of G upward by perturbation,and creates a "tensor" (three-dimensional matrix object) to keep track of the effect of each perturbation
+#GOAL: Modify the code to perturb the entries of G upward by perturbation, 
+#and create a "tensor" (three-dimensional matrix object) to keep track of the effect of each perturbation
 #in some entry (k, ell), on each person i.
-#References: Building on Ben's code for perturbations in k
-Date: 04-19-2024 
 
 
 # Import necessary libraries
@@ -96,15 +95,15 @@ for simulation in range(num_simulations):
                 effects_kappa = (kappa_perturbed - kappa_base) / perturbation
 
                 # Store the effects in the tensors
-                effects_t_tensor[:, i, j] = effects_t
-                effects_a_star_tensor[:, i, j] = effects_a_star
-                effects_kappa_tensor[:, i, j] = effects_kappa
+                effects_t_tensor[:, i, j] += effects_t
+                effects_a_star_tensor[:, i, j] += effects_a_star
+                effects_kappa_tensor[:, i, j] += effects_kappa
            
  # Calculate the average effects of perturbations in G on t, a_star, and kappa
 
-average_effects_t_tensor = np.mean(effects_t_tensor, axis=(1, 2))
-average_effects_a_star_tensor = np.mean(effects_a_star_tensor, axis=(1, 2))
-average_effects_kappa_tensor = np.mean(effects_kappa_tensor, axis=(1, 2))
+average_effects_t_tensor = effects_t_tensor/num_simulations
+average_effects_a_star_tensor = effects_a_star_tensor/num_simulations
+average_effects_kappa_tensor = effects_kappa_tensor/num_simulations
 
 print("\nAverage Effects on t:")
 print(average_effects_t_tensor)
